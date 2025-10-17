@@ -1,0 +1,46 @@
+name: Security Scan
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    schedule:
+        - cron: "0 3 * * 1" # Run every Monday at 3 AM UTC
+
+jobs:
+    security:
+        name: Run Security Scans
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install safety bandit
+
+            # 🔍 Check for known vulnerabilities in dependencies
+            - name: Run Safety check (Dependency vulnerabilities)
+              run: |
+                  pip freeze > requirements.txt
+                  safety check --full-report --file=requirements.txt
+
+            # 🔒 Static code security analysis
+            - name: Run Bandit (Code security scan)
+              run: bandit -r . -ll
+
+            # ✅ Optional: Upload results to GitHub Security tab
+            - name: Upload Bandit report as artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: bandit-report
+                  path: bandit.json
+              if: always()
