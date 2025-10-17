@@ -9,23 +9,23 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v2
-
             - name: Get PR title
-              id: pr
+              id: get_title
               uses: actions/github-script@v6
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
-                      const prTitle = context.payload.pull_request.title;
-                      return prTitle;
+                      const title = context.payload.pull_request.title;
+                      console.log("PR Title:", title);
+                      core.setOutput("title", title);
 
             - name: Validate PR title
               run: |
-                  PR_TITLE="${{ steps.pr.outputs.result }}"
+                  PR_TITLE="${{ steps.get_title.outputs.title }}"
                   echo "PR title: $PR_TITLE"
                   if [[ ! "$PR_TITLE" =~ ^OL-[0-9]{4} ]]; then
-                      echo "Error: PR title does not contain a valid JIRA ticket (e.g., OL-0786)"
-                      exit 1
+                    echo "❌ Error: PR title does not contain a valid JIRA ticket (e.g., OL-0786)"
+                    exit 1
+                  else
+                    echo "✅ PR title check passed!"
                   fi
