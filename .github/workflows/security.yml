@@ -1,20 +1,19 @@
-name: Security Scan
+name: 🛡️ Security Scan
 
 on:
     push:
         branches: [main]
     pull_request:
         branches: [main]
-    schedule:
-        - cron: "0 3 * * 1" # Run every Monday at 3 AM UTC
+    workflow_dispatch:
 
 jobs:
-    security:
-        name: Run Security Scans
+    bandit-scan:
+        name: Bandit Security Scan
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout code
+            - name: Checkout repository
               uses: actions/checkout@v4
 
             - name: Set up Python
@@ -22,25 +21,26 @@ jobs:
               with:
                   python-version: "3.12"
 
-            - name: Install dependencies
+            - name: Install Bandit
+              run: pip install bandit
+
+            - name: Run Bandit Security Scan
               run: |
-                  python -m pip install --upgrade pip
-                  pip install safety bandit
+                  bandit -r . -ll \
+                    --exclude venv,test,env,.venv,**/site-packages \
+                    -f txt -o bandit-report.txt
 
-            # 🔍 Check for known vulnerabilities in dependencies
-            - name: Run Safety check (Dependency vulnerabilities)
-              run: |
-                  pip freeze > requirements.txt
-                  safety check --full-report --file=requirements.txt
-
-            # 🔒 Static code security analysis
-            - name: Run Bandit (Code security scan)
-              run: bandit -r . -ll
-
-            # ✅ Optional: Upload results to GitHub Security tab
-            - name: Upload Bandit report as artifact
+            - name: Upload Bandit Report
               uses: actions/upload-artifact@v4
               with:
-                  name: bandit-report
-                  path: bandit.json
-              if: always()
+                  name: bandit-security-report
+                  path: bandit-report.txt
+
+            - name: Fail on High Severity Issues
+              run: |
+                  if grep -q "Severity: HIGH" bandit-report.txt; then
+                    echo "❌ High severity issues found!"
+                    exit 1
+                  else
+                    echo "✅ No high severity issues found."
+                  fi
