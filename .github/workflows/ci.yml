@@ -33,3 +33,7 @@ jobs:
       - name: Run black
         run: |
           black --check calculator.py tests/
+
+      - name: Run flake8
+        run: |
+          flake8 calculator.py tests/
