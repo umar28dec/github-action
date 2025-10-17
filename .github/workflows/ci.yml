@@ -30,18 +30,16 @@ jobs:
           pip install -r requirements.txt
           pip install black flake8 isort pytest
 
-      - name: Format code with black
-        run: black calculator.py tests/
+      # Step 4: Linting (check only, do not format)
+      - name: Check code formatting with black
+        run: black --check calculator.py tests/
 
-      - name: Sort imports with isort
-        run: isort calculator.py tests/
-
+      - name: Check import order with isort
+        run: isort --check-only calculator.py tests/
 
       - name: Run flake8
-        run: |
-          flake8 calculator.py tests/
+        run: flake8 calculator.py tests/
 
       # Step 5: Run tests
       - name: Run tests
-        run: |
-          pytest tests/
+        run: pytest tests/
