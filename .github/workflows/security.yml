@@ -30,7 +30,7 @@ jobs:
             - name: Run Bandit Security Scan
               run: |
                   bandit -r . -ll \
-                    --exclude venv,.venv,.pytest_cache,tests,**/site-packages \
+                    --exclude test,.test,.pytest_cache,**/site-packages \
                     -f txt -o bandit-report.txt
 
             - name: Upload Bandit Report
