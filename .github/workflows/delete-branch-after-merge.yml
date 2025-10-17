@@ -1,0 +1,34 @@
+name: Auto Delete Branch After Merge
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  delete-branch:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete source branch
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const branch = pr.head.ref;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+
+            if (branch === 'main' || branch === 'master' || branch.startsWith('release')) {
+              console.log(`Skipping deletion for protected branch: ${branch}`);
+              return;
+            }
+
+            console.log(`Deleting branch: ${branch}`);
+            await github.rest.git.deleteRef({
+              owner,
+              repo,
+              ref: `heads/${branch}`,
+            });
+            console.log(`✅ Branch '${branch}' deleted successfully.`);
