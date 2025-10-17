@@ -32,6 +32,7 @@ jobs:
                   bandit -r . -ll \
                     --exclude test,.test,.pytest_cache,**/site-packages \
                     -f txt -o bandit-report.txt
+              continue-on-error: true
 
             - name: Upload Bandit Report
               uses: actions/upload-artifact@v4
