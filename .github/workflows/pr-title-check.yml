@@ -1,0 +1,34 @@
+name: PR Title Check
+
+on:
+    pull_request:
+        types: [opened, edited, reopened, synchronize]
+
+jobs:
+    check-pr-title:
+        runs-on: ubuntu-latest
+
+        steps:
+            # Step 1: Checkout code (optional here)
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            # Step 2: Get PR title
+            - name: Get PR title
+              id: pr
+              uses: actions/github-script@v6
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const prTitle = context.payload.pull_request.title;
+                      return prTitle;
+
+            # Step 3: Check for JIRA ticket pattern
+            - name: Validate PR title
+              run: |
+                  PR_TITLE="${{ steps.pr.outputs.result }}"
+                  echo "PR title: $PR_TITLE"
+                  if [[ ! "$PR_TITLE" =~ ^OL-[0-9]{4} ]]; then
+                    echo "Error: PR title does not contain a valid JIRA ticket (e.g., OL-0786)"
+                    exit 1
+                  fi
