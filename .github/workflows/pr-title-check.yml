@@ -21,7 +21,7 @@ jobs:
                       const prTitle = context.payload.pull_request.title;
                       return prTitle;
 
-            - name: Validate PR title
+            - name: Validate PR title test
               run: |
                   PR_TITLE="${{ steps.pr.outputs.result }}"
                   echo "PR title: $PR_TITLE"
